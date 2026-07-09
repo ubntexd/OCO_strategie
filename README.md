@@ -1,11 +1,13 @@
 # OCO_strategie
 
-Nouveau projet OCO strategie.
+Projet BotTrader OCO — ROHAN Innovation.
 
-## Structure
+## Documentation
 
-Projet initialise sur le VPS 176.97.70.254 dans /home/dev/dev/OCO_strategie.
+- [Cahier de developpement v1.1.0](docs/CAHIER_DEVELOPPEMENT.md)
 
-## Deploiement
+## Environnement
 
-A venir.
+VPS: 176.97.70.254 — /home/dev/dev/OCO_strategie
+
+GitHub: https://github.com/ubntexd/OCO_strategie
