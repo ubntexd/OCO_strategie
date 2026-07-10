@@ -87,6 +87,9 @@ services:
     depends_on: [bot_redis, bot_postgres]
     restart: unless-stopped
     profiles: ['ops']
+    volumes:
+      - ./dashboard:/app/dashboard
+      - ./node_modules:/app/node_modules:ro
 
   bot_mcp:
     build:
