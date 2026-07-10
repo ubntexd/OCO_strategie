@@ -1,0 +1,9 @@
+body { font-family: system-ui, sans-serif; margin: 0; background: #0f1419; color: #e7ecf3; }
+header { padding: 1rem 1.5rem; border-bottom: 1px solid #243044; display: flex; justify-content: space-between; }
+nav { display: flex; gap: .5rem; padding: .75rem 1rem; flex-wrap: wrap; }
+nav button { background: #1a2332; color: #e7ecf3; border: 1px solid #2d3a4f; padding: .4rem .8rem; cursor: pointer; border-radius: 4px; }
+nav button.active { background: #2f6fed; border-color: #2f6fed; }
+main { padding: 1rem 1.5rem; }
+.card { background: #151d2b; border: 1px solid #243044; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+.positive { color: #3dd68c; }
+.negative { color: #f87171; }

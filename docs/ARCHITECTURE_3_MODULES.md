@@ -420,9 +420,12 @@ Voir `RAPPORT_ALIGNEMENT_CDC_CD.md` §3 pour la séquence d'activation BTC → S
 ```
 OCO_strategie/
 ├── docs/
+│   ├── README.md                     ← index documentation
 │   ├── ARCHITECTURE_3_MODULES.md     ← ce document
 │   ├── CAHIER_DEVELOPPEMENT.md
-│   └── RAPPORT_ALIGNEMENT_CDC_CD.md
+│   ├── RAPPORT_ALIGNEMENT_CDC_CD.md
+│   ├── PLAN_8_AGENTS.md              ← orchestration 8 agents dev
+│   └── DASHBOARD_DEV_ORCHESTRATION.md ← dashboard dev N8n
 │
 ├── db/
 │   └── schema.sql                    ← Module B

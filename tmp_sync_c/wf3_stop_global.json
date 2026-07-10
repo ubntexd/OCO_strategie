@@ -1,0 +1,35 @@
+{
+  "name": "WF3 — Stop Global",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "stop-global", "responseMode": "onReceived" },
+      "id": "webhook",
+      "name": "Webhook Stop",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": { "method": "POST", "url": "http://bot_btc:4001/stop", "options": { "timeout": 5000 } },
+      "id": "stop-btc",
+      "name": "Stop BTC",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": { "chatId": "={{$env.TELEGRAM_CHAT_ID}}", "text": "⛔ STOP GLOBAL déclenché sur les 3 bots" },
+      "id": "tg",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [440, 0]
+    }
+  ],
+  "connections": {
+    "Webhook Stop": { "main": [[{ "node": "Stop BTC", "type": "main", "index": 0 }]] },
+    "Stop BTC": { "main": [[{ "node": "Telegram", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": { "description": "CD §8.7 WF3 — POST /stop bots" }
+}

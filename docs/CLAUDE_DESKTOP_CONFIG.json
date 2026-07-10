@@ -1,0 +1,38 @@
+{
+  "mcpServers": {
+    "bottrader-vps-http": {
+      "_comment": "Connexion directe via HTTP Bridge",
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "http://176.97.70.254:5011",
+        "--header",
+        "x-mcp-token: c9042272d223601b0a71fc7c27ccc8024dccfb6af909f4b23593263f1fb42129"
+      ]
+    },
+    "bottrader-vps-ssh": {
+      "_comment": "Connexion via SSH filesystem MCP",
+      "command": "ssh",
+      "args": [
+        "-t",
+        "dev@176.97.70.254",
+        "node /home/dev/dev/OCO_strategie/mcp/filesystem-server.js"
+      ],
+      "env": {
+        "BOT_PROJECT_ROOT": "/home/dev/dev/OCO_strategie"
+      }
+    },
+    "bottrader-local-proxy": {
+      "_comment": "Via tunnel SSH — lancer scripts/tunnel-mcp.bat ou tunnel-mcp.sh",
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "http://localhost:5011",
+        "--header",
+        "x-mcp-token: c9042272d223601b0a71fc7c27ccc8024dccfb6af909f4b23593263f1fb42129"
+      ]
+    }
+  }
+}

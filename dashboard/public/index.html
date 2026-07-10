@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>ROHAN Trading Dashboard</title>
+  <link rel="stylesheet" href="/css/dashboard.css" />
+</head>
+<body>
+  <header>
+    <h1>BotTrader — Dashboard</h1>
+    <span id="live-ts">—</span>
+  </header>
+  <nav id="tabs">
+    <button data-tab="overview" class="active">Vue</button>
+    <button data-tab="trades">Trades</button>
+    <button data-tab="pnl">PnL</button>
+    <button data-tab="status">Statut</button>
+    <button data-tab="correlation">Corrélation</button>
+    <button data-tab="backtest">Backtest</button>
+    <button data-tab="events">Events</button>
+    <button data-tab="config">Config</button>
+    <button data-tab="health">Health</button>
+  </nav>
+  <main id="panel"></main>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

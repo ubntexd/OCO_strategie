@@ -1,0 +1,159 @@
+version: '3.9'
+
+networks:
+  bot_network:
+    driver: bridge
+
+services:
+  bot_redis:
+    image: redis:7-alpine
+    container_name: bot_redis
+    ports: ['6380:6379']
+    networks: [bot_network]
+    restart: unless-stopped
+
+  bot_postgres:
+    image: postgres:16
+    container_name: bot_postgres
+    env_file: [.env.shared]
+    environment:
+      POSTGRES_DB: bot_trading
+      POSTGRES_USER: bot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports: ['5435:5432']
+    volumes:
+      - bot_pgdata:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./db/dev_schema.sql:/docker-entrypoint-initdb.d/02_dev_schema.sql:ro
+    networks: [bot_network]
+    restart: unless-stopped
+
+  bot_btc:
+    build: .
+    container_name: bot_btc
+    env_file: [.env.btc, .env.shared]
+    networks: [bot_network]
+    depends_on: [bot_redis, bot_postgres]
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4001/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    volumes: ['./logs/btc:/app/logs']
+    profiles: ['btc']
+
+  bot_eth:
+    build: .
+    container_name: bot_eth
+    env_file: [.env.eth, .env.shared]
+    networks: [bot_network]
+    depends_on: [bot_redis, bot_postgres]
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4002/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    volumes: ['./logs/eth:/app/logs']
+    profiles: ['full']
+
+  bot_sol:
+    build: .
+    container_name: bot_sol
+    env_file: [.env.sol, .env.shared]
+    networks: [bot_network]
+    depends_on: [bot_redis, bot_postgres]
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4003/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    volumes: ['./logs/sol:/app/logs']
+    profiles: ['full']
+
+  bot_dashboard:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    container_name: bot_dashboard
+    env_file: [.env.shared]
+    ports: ['3010:3010']
+    networks: [bot_network]
+    depends_on: [bot_redis, bot_postgres]
+    restart: unless-stopped
+    profiles: ['ops']
+
+  bot_mcp:
+    build:
+      context: .
+      dockerfile: mcp/Dockerfile
+    container_name: bot_mcp
+    env_file: [.env.shared]
+    ports: ['5010:5010']
+    networks: [bot_network]
+    depends_on: [bot_redis, bot_postgres]
+    restart: unless-stopped
+    profiles: ['ops']
+
+  dev_dashboard:
+    build:
+      context: .
+      dockerfile: dev-dashboard/Dockerfile
+    container_name: dev_dashboard
+    env_file: [.env.shared]
+    ports: ['3020:3020']
+    networks: [bot_network]
+    depends_on: [bot_postgres]
+    restart: unless-stopped
+
+  claude_worker:
+    build:
+      context: .
+      dockerfile: claude-worker/Dockerfile
+    container_name: claude_worker
+    env_file: [.env.shared]
+    networks: [bot_network]
+    ports: ['4099:4099']
+    volumes:
+      - ./logs:/app/logs
+      - ./:/app
+    depends_on: [bot_redis, bot_postgres]
+    restart: unless-stopped
+    profiles: ['ops']
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4099/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  mcp_bridge:
+    build:
+      context: .
+      dockerfile: mcp-bridge/Dockerfile
+    container_name: mcp_bridge
+    env_file: [.env.shared]
+    environment:
+      - BOT_PROJECT_ROOT=/app
+      - MCP_HTTP_PORT=5011
+    networks: [bot_network]
+    ports: ['5011:5011']
+    volumes:
+      - ./:/app
+      - ./logs:/app/logs
+    depends_on: [bot_redis, bot_postgres]
+    restart: unless-stopped
+    profiles: ['ops']
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:5011/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  bot_pgdata:

@@ -1,0 +1,65 @@
+{
+  "name": "WF1 — Health Check",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "minutes", "minutesInterval": 5 }] } },
+      "id": "schedule",
+      "name": "Cron 5min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": { "url": "http://bot_btc:4001/health", "options": { "timeout": 5000 } },
+      "id": "ping-btc",
+      "name": "Ping bot_btc",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, -100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{$json.status}}", "operation": "notEqual", "value2": "ok" }]
+        }
+      },
+      "id": "if-btc",
+      "name": "Bot mort ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, -100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://bot_btc:4001/restart",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "x-restart-token", "value": "={{$env.RESTART_SECRET}}" }]
+        },
+        "options": { "timeout": 5000 }
+      },
+      "id": "restart-btc",
+      "name": "Restart via HTTP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, -100]
+    },
+    {
+      "parameters": { "chatId": "={{$env.TELEGRAM_CHAT_ID}}", "text": "⛔ bot_btc non répondant — restart déclenché" },
+      "id": "tg-btc",
+      "name": "Alerte Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [880, -100]
+    }
+  ],
+  "connections": {
+    "Cron 5min": { "main": [[{ "node": "Ping bot_btc", "type": "main", "index": 0 }]] },
+    "Ping bot_btc": { "main": [[{ "node": "Bot mort ?", "type": "main", "index": 0 }]] },
+    "Bot mort ?": { "main": [[{ "node": "Restart via HTTP", "type": "main", "index": 0 }], []] },
+    "Restart via HTTP": { "main": [[{ "node": "Alerte Telegram", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": { "description": "CD §8.7 WF1 — HTTP /restart, zéro SSH" }
+}

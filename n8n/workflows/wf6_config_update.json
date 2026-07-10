@@ -1,0 +1,52 @@
+{
+  "name": "WF6 — Config Update",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "config", "responseMode": "onReceived" },
+      "id": "webhook",
+      "name": "Webhook Config",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://bot_{{$json.body.symbol.toLowerCase().replace('usdt','')}}:400{{$json.body.symbol === 'ETHUSDT' ? 2 : $json.body.symbol === 'SOLUSDT' ? 3 : 1}}/config",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-bot-token", "value": "={{$env.RESTART_SECRET}}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"key\": $json.body.key, \"value\": $json.body.value}"
+      },
+      "id": "http-config",
+      "name": "POST /config bot",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO mcp_actions (tool, params) VALUES ('set_config', $1::jsonb)",
+        "additionalFields": { "queryParams": "={{JSON.stringify($json.body)}}" }
+      },
+      "id": "pg",
+      "name": "Log mcp_actions",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [440, 0]
+    }
+  ],
+  "connections": {
+    "Webhook Config": { "main": [[{ "node": "POST /config bot", "type": "main", "index": 0 }]] },
+    "POST /config bot": { "main": [[{ "node": "Log mcp_actions", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": { "description": "CD §8.7 WF6 — webhook config → HTTP bot" }
+}

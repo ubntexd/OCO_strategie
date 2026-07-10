@@ -1,0 +1,55 @@
+{
+  "name": "WF-dev-02 Rapport coworker",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "dev/report",
+        "responseMode": "lastNode"
+      },
+      "id": "webhook-report",
+      "name": "Webhook Report",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO dev_reports (agent_id, agent_role, module, task, status, message, files_changed, doc_reference) VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8) RETURNING id",
+        "additionalFields": {
+          "queryParams": "={{ [$json.body.agent_id, $json.body.agent_role, $json.body.module, $json.body.task, $json.body.status, $json.body.message, JSON.stringify($json.body.files_changed || []), $json.body.doc_reference] }}"
+        }
+      },
+      "id": "postgres-insert",
+      "name": "Insert dev_reports",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [240, 0],
+      "credentials": { "postgres": { "id": "BOT_POSTGRES", "name": "bot_postgres" } }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://dev_dashboard:3020/api/dev/push"
+      },
+      "id": "push-dashboard",
+      "name": "Push Dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 0]
+    }
+  ],
+  "connections": {
+    "Webhook Report": {
+      "main": [[{ "node": "Insert dev_reports", "type": "main", "index": 0 }]]
+    },
+    "Insert dev_reports": {
+      "main": [[{ "node": "Push Dashboard", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": {
+    "description": "PLAN_8_AGENTS.md §6.1 — corps JSON dev_report"
+  }
+}

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OCO_strategie — Orchestration Dev</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #0f1419; color: #e7e9ea; }
+    header { padding: 1rem 1.5rem; border-bottom: 1px solid #2f3336; }
+    h1 { margin: 0; font-size: 1.25rem; }
+    .meta { color: #71767b; font-size: 0.85rem; margin-top: 0.25rem; }
+    main { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem; }
+    section { background: #16181c; border: 1px solid #2f3336; border-radius: 8px; padding: 1rem; }
+    section h2 { margin: 0 0 0.75rem; font-size: 1rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { text-align: left; padding: 0.35rem 0.5rem; border-bottom: 1px solid #2f3336; }
+    .verdict-go { color: #00ba7c; }
+    .verdict-no { color: #f4212e; }
+    .status-running { color: #1d9bf0; }
+    #timeline { max-height: 320px; overflow-y: auto; font-size: 0.8rem; }
+    #timeline div { padding: 0.25rem 0; border-bottom: 1px solid #2f3336; }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Orchestration Développement — OCO_strategie</h1>
+    <div class="meta" id="header-meta">Chargement…</div>
+  </header>
+  <main>
+    <section>
+      <h2>Pipeline</h2>
+      <div id="pipeline">—</div>
+    </section>
+    <section>
+      <h2>Dernier verdict Claude IA</h2>
+      <div id="gate">—</div>
+    </section>
+    <section style="grid-column: 1 / -1;">
+      <h2>Agents (8)</h2>
+      <table>
+        <thead><tr><th>Agent</th><th>Rôle</th><th>Statut</th><th>Dernière tâche</th></tr></thead>
+        <tbody id="agents-body"></tbody>
+      </table>
+    </section>
+    <section style="grid-column: 1 / -1;">
+      <h2>Rapports récents</h2>
+      <div id="timeline"></div>
+    </section>
+  </main>
+  <script src="/js/dev-dashboard.js"></script>
+</body>
+</html>

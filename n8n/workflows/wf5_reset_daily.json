@@ -1,0 +1,48 @@
+{
+  "name": "WF5 — Reset Daily",
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "1 0 * * *" }] } },
+      "id": "cron",
+      "name": "Cron 00h01 UTC",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://bot_btc:4001/config",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-bot-token", "value": "={{$env.RESTART_SECRET}}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"key\":\"reset_daily\"}"
+      },
+      "id": "reset-btc",
+      "name": "Reset BTC",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": { "chatId": "={{$env.TELEGRAM_CHAT_ID}}", "text": "✅ reset_daily appliqué sur les bots" },
+      "id": "tg",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [440, 0]
+    }
+  ],
+  "connections": {
+    "Cron 00h01 UTC": { "main": [[{ "node": "Reset BTC", "type": "main", "index": 0 }]] },
+    "Reset BTC": { "main": [[{ "node": "Telegram", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": { "description": "CD §8.7 WF5 — POST /config reset_daily, pas Redis direct" }
+}

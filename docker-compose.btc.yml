@@ -1,0 +1,8 @@
+# Override BTC first — RAPPORT_ALIGNEMENT §3.3, CD §11.4
+# Démarrage infra + dashboard dev :
+#   docker compose up -d
+# Démarrage bot BTC (quand health.js/bot.js prêts) :
+#   docker compose --profile btc up -d bot_btc
+services:
+  bot_btc:
+    profiles: ['btc']

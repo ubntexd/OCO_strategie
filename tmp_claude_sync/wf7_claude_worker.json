@@ -1,0 +1,126 @@
+{
+  "name": "WF7 — Claude Code Worker",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "claude-execute",
+        "responseMode": "onReceived"
+      },
+      "id": "webhook",
+      "name": "Webhook Claude",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://claude_worker:4099/execute",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-worker-token", "value": "={{$env.RESTART_SECRET}}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"instruction\": $json.body.instruction, \"async\": true}",
+        "options": { "timeout": 300000 }
+      },
+      "id": "claude-exec",
+      "name": "Execute Claude Code",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://claude_worker:4099/test",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-worker-token", "value": "={{$env.RESTART_SECRET}}" }
+          ]
+        },
+        "options": { "timeout": 120000 }
+      },
+      "id": "run-tests",
+      "name": "Run Tests",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{$json.status}}", "operation": "equal", "value2": "pass" }]
+        }
+      },
+      "id": "tests-ok",
+      "name": "Tests OK ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://claude_worker:4099/commit",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-worker-token", "value": "={{$env.RESTART_SECRET}}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"message\": \"feat: \" + $('Webhook Claude').item.json.body.instruction.slice(0,60)}"
+      },
+      "id": "auto-commit",
+      "name": "Auto Commit",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, -60]
+    },
+    {
+      "parameters": {
+        "chatId": "={{$env.TELEGRAM_CHAT_ID}}",
+        "text": "=✅ Claude Code — DONE\n{{$('Webhook Claude').item.json.body.instruction.slice(0,80)}}\nTests: PASS | Commit: OK"
+      },
+      "id": "tg-ok",
+      "name": "Telegram OK",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1100, -60]
+    },
+    {
+      "parameters": {
+        "chatId": "={{$env.TELEGRAM_CHAT_ID}}",
+        "text": "=❌ Claude Code — TESTS FAIL\n{{$('Webhook Claude').item.json.body.instruction.slice(0,80)}}\nTests: FAIL — correction requise"
+      },
+      "id": "tg-fail",
+      "name": "Telegram FAIL",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [880, 60]
+    }
+  ],
+  "connections": {
+    "Webhook Claude": { "main": [[{ "node": "Execute Claude Code", "type": "main", "index": 0 }]] },
+    "Execute Claude Code": { "main": [[{ "node": "Run Tests", "type": "main", "index": 0 }]] },
+    "Run Tests": { "main": [[{ "node": "Tests OK ?", "type": "main", "index": 0 }]] },
+    "Tests OK ?": {
+      "main": [
+        [{ "node": "Auto Commit", "type": "main", "index": 0 }],
+        [{ "node": "Telegram FAIL", "type": "main", "index": 0 }]
+      ]
+    },
+    "Auto Commit": { "main": [[{ "node": "Telegram OK", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": { "description": "WF7 — Pont N8n → Claude Code → Tests → Commit → Telegram" }
+}

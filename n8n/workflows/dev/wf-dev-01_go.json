@@ -1,0 +1,43 @@
+{
+  "name": "WF-dev-01 GO directeur",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "dev/go",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-go",
+      "name": "Webhook GO",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://dev_dashboard:3020/api/dev/go",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-dev-go-token", "value": "={{ $env.DEV_GO_TOKEN }}" }
+          ]
+        }
+      },
+      "id": "http-dashboard-go",
+      "name": "Dashboard GO",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 0]
+    }
+  ],
+  "connections": {
+    "Webhook GO": {
+      "main": [[{ "node": "Dashboard GO", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": {
+    "description": "DASHBOARD_DEV_ORCHESTRATION.md §4 WF-dev-01 — zéro SSH (CD §8.7)"
+  }
+}

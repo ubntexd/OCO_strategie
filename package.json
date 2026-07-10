@@ -1,0 +1,35 @@
+{
+  "name": "oco-strategie",
+  "version": "1.0.0",
+  "description": "BotTrader OPOCO — ROHAN Innovation",
+  "private": true,
+  "main": "src/bot.js",
+  "scripts": {
+    "start:btc": "node -r dotenv/config src/bot.js dotenv_config_path=.env.btc",
+    "start:eth": "node -r dotenv/config src/bot.js dotenv_config_path=.env.eth",
+    "start:sol": "node -r dotenv/config src/bot.js dotenv_config_path=.env.sol",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/",
+    "pipeline:go": "node scripts/pipeline-go.js",
+    "pipeline:task": "node scripts/pipeline-task.js",
+    "dev:report": "node scripts/dev-report.js",
+    "claude:test": "node scripts/claude-gate-test.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "winston": "^3.13.0",
+    "ioredis": "^5.4.1",
+    "pg": "^8.12.0",
+    "ws": "^8.18.0",
+    "express": "^4.19.0",
+    "dotenv": "^16.4.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nock": "^13.5.0",
+    "ioredis-mock": "^8.9.0"
+  }
+}

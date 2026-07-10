@@ -1,0 +1,62 @@
+{
+  "name": "WF-dev-05 Coworker Claude IA — GO/NO GO",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "dev/gate",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-gate",
+      "name": "Webhook Gate",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://dev_dashboard:3020/api/dev/pipeline/task",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-dev-go-token", "value": "={{ $env.DEV_GO_TOKEN }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}"
+      },
+      "id": "http-pipeline",
+      "name": "Pipeline Task Auto",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [240, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [480, 0]
+    }
+  ],
+  "connections": {
+    "Webhook Gate": {
+      "main": [[{ "node": "Pipeline Task Auto", "type": "main", "index": 0 }]]
+    },
+    "Pipeline Task Auto": {
+      "main": [[{ "node": "Respond", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": {
+    "description": "DASHBOARD_DEV_ORCHESTRATION.md §4 WF-dev-05 — pipeline automatique avec preuves + Claude GO/NO_GO. Body: {agent, module, task, message, files_changed, doc_ref, next_task}"
+  }
+}
