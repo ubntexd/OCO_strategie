@@ -46,6 +46,21 @@ const createDashboardApp = (pgPool, redis) => {
   app.get('/api/status', require('./api/status').get(redis, pgPool));
   app.post('/api/backtest', require('./api/backtest').run(pgPool));
   app.get('/api/correlation', require('./api/correlation').current(redis));
+
+  // Config à chaud — publie dans Redis pub/sub (WF6)
+  app.post('/api/config', async (req, res) => {
+    try {
+      const { symbol, key, value } = req.body || {};
+      if (!symbol || !key || value === undefined) {
+        return res.status(400).json({ error: 'symbol, key et value requis' });
+      }
+      const channel = `bot:${symbol.toLowerCase()}:config`;
+      await redis.publish(channel, `${key}:${value}`);
+      res.json({ status: 'applied', symbol, key, value });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
   app.get('/api/events', require('./api/events').list(pgPool));
 
   return app;
