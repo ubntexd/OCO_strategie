@@ -12,8 +12,13 @@ let AUTH = '';
 })();
 
 // ── API helper ────────────────────────────────────────────────────────────────
+const apiUrl = (path) => {
+  if (path.startsWith('http')) return path;
+  return `${window.location.origin}${path.startsWith('/') ? path : `/${path}`}`;
+};
+
 async function api(path, opts = {}) {
-  const res = await fetch(path, {
+  const res = await fetch(apiUrl(path), {
     ...opts,
     headers: { Authorization: AUTH, 'Content-Type': 'application/json', ...(opts.headers || {}) },
   });
@@ -29,10 +34,16 @@ async function api(path, opts = {}) {
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 function toast(msg, type = 'ok') {
+  let wrap = document.getElementById('toast-wrap');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'toast-wrap';
+    document.body.appendChild(wrap);
+  }
   const t = document.createElement('div');
   t.className = 'toast ' + type;
   t.textContent = msg;
-  document.getElementById('toast-wrap').appendChild(t);
+  wrap.appendChild(t);
   setTimeout(() => t.remove(), 3500);
 }
 
@@ -60,6 +71,7 @@ const CHARTS = {};
 function destroyChart(id) { if (CHARTS[id]) { CHARTS[id].destroy(); delete CHARTS[id]; } }
 
 function makeChart(id, config) {
+  if (typeof Chart === 'undefined') return null;
   destroyChart(id);
   const ctx = document.getElementById(id);
   if (!ctx) return null;
@@ -94,7 +106,7 @@ function connectWs() {
       lastWsData = d;
       liveTs.textContent = new Date(d.ts).toLocaleTimeString('fr-FR');
       updateHeader(d);
-      const active = $('.tab-btn.active');
+      const active = $('#nav button.active');
       if (active && active.dataset.tab === 'overview') renderOverviewLive(d);
       if (active && active.dataset.tab === 'status') updateStatusLive(d);
     } catch (_) {}
@@ -104,21 +116,28 @@ connectWs();
 
 function updateHeader(d) {
   const fmt = (v) => v ? parseFloat(v).toLocaleString('fr-FR', { maximumFractionDigits: 0 }) : '—';
-  document.getElementById('h-btc').textContent = fmt(d.bid_btc);
-  document.getElementById('h-eth').textContent = fmt(d.bid_eth);
-  document.getElementById('h-sol').textContent = fmt(d.bid_sol);
+  const btc = document.getElementById('tk-btc') || document.getElementById('h-btc');
+  const eth = document.getElementById('tk-eth') || document.getElementById('h-eth');
+  const sol = document.getElementById('tk-sol') || document.getElementById('h-sol');
+  if (btc) btc.textContent = 'BTC ' + fmt(d.bid_btc);
+  if (eth) eth.textContent = 'ETH ' + fmt(d.bid_eth);
+  if (sol) sol.textContent = 'SOL ' + fmt(d.bid_sol);
   const pnl = d.pnl_day ?? 0;
-  const hPnl = document.getElementById('h-pnl');
-  hPnl.textContent = (pnl >= 0 ? '+' : '') + fmt2(pnl) + ' $';
-  hPnl.className = 'val ' + (pnl >= 0 ? 'positive' : 'negative');
+  const hPnl = document.getElementById('pnl-day-badge') || document.getElementById('h-pnl');
+  if (hPnl) {
+    hPnl.textContent = (pnl >= 0 ? '+' : '') + fmt2(pnl) + ' $';
+    hPnl.className = (hPnl.id === 'pnl-day-badge' ? 'badge ' : 'val ') + (pnl >= 0 ? 'positive' : 'negative');
+  }
 }
 
 // ── Tab router ────────────────────────────────────────────────────────────────
 document.getElementById('nav').addEventListener('click', (e) => {
-  const btn = e.target.closest('.tab-btn');
+  const btn = e.target.closest('button[data-tab]');
   if (!btn) return;
-  $$('.tab-btn').forEach((b) => b.classList.remove('active'));
+  $$('#nav button[data-tab]').forEach((b) => b.classList.remove('active'));
   btn.classList.add('active');
+  const label = document.getElementById('active-tab-label');
+  if (label) label.textContent = btn.textContent.trim();
   loadTab(btn.dataset.tab);
 });
 
