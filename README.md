@@ -8,6 +8,7 @@ Projet BotTrader OPOCO — ROHAN Innovation.
 
 | Document | Description |
 |----------|-------------|
+| [Architecture 3 modules](docs/ARCHITECTURE_3_MODULES.md) | Division fonctionnelle — Trading Core / Risk & Data / Ops |
 | [Rapport d'alignement CDC ↔ CD](docs/RAPPORT_ALIGNEMENT_CDC_CD.md) | **Décisions infra** — VPS, ports, BTC first |
 | [Cahier de developpement v1.1](docs/CAHIER_DEVELOPPEMENT.md) | Guide implementation |
 
