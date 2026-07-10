@@ -2157,3 +2157,174 @@ docker compose up -d --build
 
 *Fin du cahier de développement — Version 1.1.0*
 *ROHAN Innovation — Abidjan, Côte d'Ivoire — Juillet 2026*
+
+---
+
+## 12. DASHBOARD — SPÉCIFICATIONS COMPLÈTES v2.0
+### Livré le 10/07/2026 — Validé visuellement en production
+
+### 12.1 Architecture serveur
+
+**Fichier :** `dashboard/server.js` — 254 lignes
+
+```
+Express + HTTP + WebSocketServer
+├── GET  /health              → sans auth — health check
+├── Auth Basic admin:DASHBOARD_PASSWORD (middleware)
+├── GET  /api/pnl/today       → PnL par symbole depuis Postgres
+├── GET  /api/trades          → Liste trades (limit param)
+├── GET  /api/trades/filtered → Filtres avancés + stats agrégées + tri
+├── GET  /api/status          → État 3 bots via Redis
+├── POST /api/backtest        → Backtest Sharpe/Sortino/PF
+├── GET  /api/correlation     → Matrice corrélation depuis Redis
+├── GET  /api/events          → Flux events Postgres
+├── POST /api/config          → Config à chaud Redis pub/sub
+├── GET  /api/pnl/history     → PnL journalier N jours
+├── GET  /api/system          → CPU/RAM/uptime/Docker via os module
+└── WS push toutes les secondes :
+    { ts, bid_btc, bid_eth, bid_sol, pnl_day, global_stop, pairs:{...} }
+```
+
+### 12.2 buildRealtimeData — payload WS
+
+```javascript
+{
+  ts: Date.now(),
+  bid_btc: string,        // redis GET bid:BTCUSDT
+  bid_eth: string,        // redis GET bid:ETHUSDT
+  bid_sol: string,        // redis GET bid:SOLUSDT
+  pnl_day: number,        // SUM pnl_net trades aujourd'hui
+  global_stop: boolean,   // redis GET bot:global:stop
+  pairs: {
+    BTCUSDT: {
+      position_open: boolean,
+      trades_day: number,
+      consec_loss: number,
+      regime: string,
+      kelly: number,
+      atr: number,
+      ws_status: string,
+      listen_key_age: number,
+      last_signal: string,
+    },
+    ETHUSDT: { ... },
+    SOLUSDT: { ... },
+  }
+}
+```
+
+### 12.3 Endpoint /api/trades/filtered — paramètres
+
+| Param | Type | Valeurs | Défaut |
+|-------|------|---------|--------|
+| `symbol` | string | BTCUSDT/ETHUSDT/SOLUSDT/ALL | ALL |
+| `result` | string | TP/SL/FORCED_EXIT/SLIPPAGE_ABORT/ALL | ALL |
+| `from` | date | ISO date | — |
+| `to` | date | ISO date | — |
+| `pnl_min` | number | — | — |
+| `pnl_max` | number | — | — |
+| `dry_run` | boolean | true/false | — |
+| `sort_col` | string | entry_time/exit_time/pnl_net/symbol/result/qty | entry_time |
+| `sort_dir` | string | ASC/DESC | DESC |
+| `limit` | number | max 1000 | 200 |
+| `offset` | number | — | 0 |
+
+**Retourne :**
+```javascript
+{
+  rows: [...],     // trades filtrés
+  stats: {
+    total, wins, losses, total_pnl,
+    avg_pnl, best, worst, avg_duration_s
+  }
+}
+```
+
+### 12.4 Frontend — 10 onglets
+
+| Onglet | data-tab | Source données | Chart.js |
+|--------|----------|----------------|----------|
+| Overview | overview | WS live | Equity 7j |
+| Historique | trades | /api/trades/filtered | Equity filtrée |
+| PnL | pnl | /api/pnl/today + /api/pnl/history | Equity 30j + barres + par symbole |
+| Statut Bots | status | /api/status + WS live | — |
+| Marché | market | Binance REST public + CoinGecko | — |
+| Corrélation | correlation | /api/correlation | — |
+| Backtest | backtest | POST /api/backtest | Equity curve |
+| Events | events | /api/events | — |
+| Config | config | POST /api/config | — |
+| Health/VPS | health | /api/system + /api/status | — |
+
+### 12.5 Marché — 2 sources indépendantes
+
+**Source 1 — Binance REST (publique, sans clé)**
+```
+GET https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT&symbol=ETHUSDT&symbol=SOLUSDT
+Retourne : lastPrice, priceChangePercent, highPrice, lowPrice, volume, quoteVolume
+```
+
+**Source 2 — CoinGecko (publique, sans clé)**
+```
+GET https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd
+  &include_24hr_change=true&include_market_cap=true&include_24hr_vol=true
+Retourne : usd, usd_24h_change, usd_market_cap, usd_24h_vol
+```
+
+Chaque source affiche un badge `✅` si disponible, `❌` si API down.
+
+### 12.6 Déploiement dashboard
+
+**Conteneur :** `bot_dashboard` (profile `ops`)
+**Dockerfile :** `dashboard/Dockerfile`
+```dockerfile
+FROM node:22-alpine
+WORKDIR /app
+RUN apk add --no-cache curl
+COPY package*.json ./
+RUN npm ci --only=production
+COPY dashboard/ ./dashboard/
+COPY src/correlation.js ./src/correlation.js
+EXPOSE 3010
+CMD ["node", "dashboard/server.js"]
+```
+
+**Volume bind-mount (docker-compose.yml) :**
+```yaml
+volumes:
+  - ./dashboard:/app/dashboard
+  - ./node_modules:/app/node_modules:ro
+```
+→ Permet mise à jour des fichiers sans rebuild.
+
+**Commande rebuild si nécessaire :**
+```bash
+docker compose --profile ops up -d --build bot_dashboard
+```
+
+### 12.7 Auth dashboard
+
+- Auth HTTP Basic : `admin` / `DASHBOARD_PASSWORD` (variable env)
+- Stockée en `sessionStorage` côté client (pas de prompt répété)
+- Retry automatique sur 401
+- La route `/health` est exclue de l'auth (monitoring)
+
+### 12.8 Tests dashboard
+
+**Suite :** `tests/unit/dashboard.test.js` — 10 tests
+```
+✅ index.html expose 9 onglets (data-tab ×9)
+✅ GET /health sans auth → 200
+✅ GET /api/pnl/today requiert auth → 401
+✅ GET /api/pnl/today avec auth → 200 + rows
+✅ GET /api/status → 200 + pairs[3]
+✅ GET /api/correlation → 200 + BTCUSDT
+✅ buildRealtimeData → bid_btc + pnl_day
+✅ GET /api/trades → 200 + rows
+✅ POST /api/backtest → 200 + total_pnl
+✅ startDashboardServer démarre WebSocket
+```
+
+---
+
+*Fin du cahier de développement — Version 1.2.0*
+*ROHAN Innovation — Abidjan, Côte d'Ivoire — 10 juillet 2026*
