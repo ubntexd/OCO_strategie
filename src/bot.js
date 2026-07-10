@@ -12,6 +12,7 @@ const monitor = require('./monitor');
 const signal = require('./signal');
 const protection = require('./protection');
 const journal = require('./journal');
+const correlation = require('./correlation');
 const atr = require('./atr');
 const health = require('./health');
 const { computeKellyAuto } = require('./kelly');
@@ -112,8 +113,9 @@ const processTradingCycle = async (ctx) => {
     return;
   }
 
+  const corrBtcEth = await correlation.getPairCorrelation('BTCUSDT', 'ETHUSDT', 20, redis);
   const tradeId = await journal.logTradeOpen(
-    pgPool, symbol, entry.fillPrice, entry.quantity, tp, sl, atrData.atr, kellyFraction,
+    pgPool, symbol, entry.fillPrice, entry.quantity, tp, sl, atrData.atr, kellyFraction, corrBtcEth,
   );
   await journal.logTradeFill(pgPool, tradeId, entry);
 

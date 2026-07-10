@@ -3,6 +3,7 @@ jest.mock('ioredis', () => jest.fn().mockImplementation(() => ({
   get: jest.fn().mockResolvedValue(null),
   set: jest.fn().mockResolvedValue('OK'),
   del: jest.fn().mockResolvedValue(1),
+  lrange: jest.fn().mockResolvedValue([]),
   disconnect: jest.fn(),
 })));
 jest.mock('pg', () => ({
@@ -97,6 +98,7 @@ describe('bot.js — CD §4.13', () => {
       set: jest.fn(),
       del: jest.fn(),
       incr: jest.fn(),
+      lrange: jest.fn().mockResolvedValue([]),
     };
     const ctx = {
       symbol: 'BTCUSDT',
@@ -127,6 +129,7 @@ describe('bot.js — CD §4.13', () => {
       setex: jest.fn().mockResolvedValue('OK'),
       del: jest.fn().mockResolvedValue(1),
       incr: jest.fn().mockResolvedValue(1),
+      lrange: jest.fn().mockResolvedValue([]),
     };
     const ctx = {
       symbol: 'BTCUSDT',
@@ -174,6 +177,7 @@ describe('bot.js — CD §4.13', () => {
     const mockRedis = {
       get: jest.fn().mockResolvedValue('100'),
       set: jest.fn(), setex: jest.fn(), del: jest.fn(), incr: jest.fn(),
+      lrange: jest.fn().mockResolvedValue([]),
     };
     const ctx = {
       symbol: 'BTCUSDT', redis: mockRedis, pgPool: { query: jest.fn() }, binanceClient: {},
@@ -196,6 +200,7 @@ describe('bot.js — CD §4.13', () => {
     const mockRedis = {
       get: jest.fn().mockResolvedValue('100'),
       set: jest.fn(), setex: jest.fn(), del: jest.fn(), incr: jest.fn(),
+      lrange: jest.fn().mockResolvedValue([]),
     };
     const ctx = {
       symbol: 'BTCUSDT', redis: mockRedis, pgPool: { query: jest.fn() }, binanceClient: {},
@@ -247,6 +252,7 @@ describe('bot.js — CD §4.13', () => {
     const mockRedis = {
       get: jest.fn().mockResolvedValue('100'),
       set: jest.fn(), setex: jest.fn(), del: jest.fn(), incr: jest.fn(),
+      lrange: jest.fn().mockResolvedValue([]),
     };
     const ctx = {
       symbol: 'BTCUSDT', redis: mockRedis, pgPool: { query: jest.fn() }, binanceClient: {},

@@ -75,13 +75,13 @@ ROHAN Innovation développe un bot de trading automatisé sur Binance Spot pour 
 | bot_eth | node:22-alpine | 4002 | Bot trading ETHUSDT |
 | bot_sol | node:22-alpine | 4003 | Bot trading SOLUSDT |
 | bot_redis | redis:7-alpine | 6380 | État partagé, locks, pub/sub |
-| bot_postgres | postgres:16 | 5433 | Journal trades, historique |
+| bot_postgres | postgres:16 | 5435 | Journal trades, historique |
 | bot_mcp | node:22-alpine | 5010 | Serveur MCP pour Claude Desktop |
 | bot_dashboard | node:22-alpine | 3010 | Interface web 9 onglets |
 
 ### 2.3 Isolation
 - Redis dédié `bot_redis` (port 6380) — séparé de `rohan_redis`
-- PostgreSQL dédié `bot_postgres` (port 5433) — séparé de `rohan_postgres`
+- PostgreSQL dédié `bot_postgres` (port 5435) — séparé de `rohan_postgres`
 - Réseau Docker interne : `bot_network`
 - Pas d'interférence avec l'infrastructure ROHAN-Wash
 
@@ -146,7 +146,7 @@ BINANCE_API_SECRET=<secret_btc>
 ```env
 BINANCE_TESTNET=false
 REDIS_URL=redis://bot_redis:6380
-POSTGRES_URL=postgresql://bot:...@bot_postgres:5433/bot_trading
+POSTGRES_URL=postgresql://bot:...@bot_postgres:5435/bot_trading
 N8N_WEBHOOK_BASE=http://rohan_n8n:5678/webhook
 TELEGRAM_BOT_TOKEN=...
 TELEGRAM_CHAT_ID=...
@@ -740,7 +740,7 @@ CREATE INDEX idx_events_type ON events(type);
 ### 13.2 Backup avec rotation externe *(C11)*
 ```bash
 # /etc/cron.d/bot-backup — 03h00 UTC, rotation 30j + sync cloud
-0 3 * * * root pg_dump -U bot -h localhost -p 5433 bot_trading \
+0 3 * * * root pg_dump -U bot -h localhost -p 5435 bot_trading \
   | gzip > /var/backups/bot-trading/bot_$(date +\%Y\%m\%d).sql.gz \
   && find /var/backups/bot-trading/ -name "*.sql.gz" -mtime +30 -delete \
   && rclone copy /var/backups/bot-trading/ gdrive:rohan-backups/bot-trading/ --max-age 24h
@@ -854,7 +854,7 @@ Autres métriques : PnL total/moyen, WR, drawdown max (valeur + durée), Profit 
 | Phase 4 — Validation | DRY_RUN 1sem → Testnet 2sem → Production 10% 1sem → complet | Semaine 5+ |
 
 ### 16.3 Points de vigilance critiques
-1. Ne pas interférer avec `rohan_postgres` et `rohan_redis` (ports distincts 5433/6380)
+1. Ne pas interférer avec `rohan_postgres` et `rohan_redis` (ports distincts 5435/6380)
 2. UFW : ouvrir uniquement les ports 3010 et 5010
 3. **3 paires de clés API distinctes** avec IP whitelist *(S5)*
 4. `pendingQuantity` **absent** dans OPOCO (confirmé doc officielle) *(C2)*

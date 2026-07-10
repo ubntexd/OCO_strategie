@@ -13,12 +13,12 @@ describe('journal.js — CD §4.5', () => {
         query: jest.fn().mockResolvedValue({ rows: [{ id: 42 }] }),
       };
       const id = await journal.logTradeOpen(
-        mockPg, 'BTCUSDT', 104500, 0.001, 104900, 104200, 50, 0.10,
+        mockPg, 'BTCUSDT', 104500, 0.001, 104900, 104200, 50, 0.10, 0.42,
       );
       expect(id).toBe(42);
       expect(mockPg.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO trades'),
-        expect.arrayContaining(['BTCUSDT', 104500, 0.001, 0.10]),
+        expect.arrayContaining(['BTCUSDT', 104500, 0.001, 0.10, 0.42]),
       );
     });
 
@@ -38,6 +38,10 @@ describe('journal.js — CD §4.5', () => {
         expect.arrayContaining([104900, 5, 0.4, 0.01, 0.39, 'TP', 42]),
       );
       expect(mockRedis.incr).toHaveBeenCalledWith('bot:global:total_trades');
+      expect(mockPg.query).toHaveBeenCalledWith(
+        expect.stringContaining('daily_summary'),
+        expect.any(Array),
+      );
     });
 
     test('seuil 1500 trades déclenche notifyTelegram', async () => {

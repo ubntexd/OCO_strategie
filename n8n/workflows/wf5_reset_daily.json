@@ -2,12 +2,24 @@
   "name": "WF5 — Reset Daily",
   "nodes": [
     {
-      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "1 0 * * *" }] } },
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "1 0 * * *"
+            }
+          ]
+        }
+      },
       "id": "cron",
       "name": "Cron 00h01 UTC",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [0, 0]
+      "position": [
+        0,
+        0
+      ]
     },
     {
       "parameters": {
@@ -16,8 +28,14 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "x-bot-token", "value": "={{$env.RESTART_SECRET}}" },
-            { "name": "Content-Type", "value": "application/json" }
+            {
+              "name": "x-bot-token",
+              "value": "={{$env.RESTART_SECRET}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
           ]
         },
         "sendBody": true,
@@ -28,21 +46,136 @@
       "name": "Reset BTC",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [220, 0]
+      "position": [
+        220,
+        0
+      ]
     },
     {
-      "parameters": { "chatId": "={{$env.TELEGRAM_CHAT_ID}}", "text": "✅ reset_daily appliqué sur les bots" },
+      "parameters": {
+        "method": "POST",
+        "url": "http://bot_eth:4002/config",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-bot-token",
+              "value": "={{$env.RESTART_SECRET}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"key\":\"reset_daily\"}"
+      },
+      "id": "reset-eth",
+      "name": "Reset ETH",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://bot_sol:4003/config",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-bot-token",
+              "value": "={{$env.RESTART_SECRET}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"key\":\"reset_daily\"}"
+      },
+      "id": "reset-sol",
+      "name": "Reset SOL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{$env.TELEGRAM_CHAT_ID}}",
+        "text": "✅ reset_daily appliqué sur BTC + ETH + SOL"
+      },
       "id": "tg",
       "name": "Telegram",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [440, 0]
+      "position": [
+        880,
+        0
+      ]
     }
   ],
   "connections": {
-    "Cron 00h01 UTC": { "main": [[{ "node": "Reset BTC", "type": "main", "index": 0 }]] },
-    "Reset BTC": { "main": [[{ "node": "Telegram", "type": "main", "index": 0 }]] }
+    "Cron 00h01 UTC": {
+      "main": [
+        [
+          {
+            "node": "Reset BTC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reset BTC": {
+      "main": [
+        [
+          {
+            "node": "Reset ETH",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reset ETH": {
+      "main": [
+        [
+          {
+            "node": "Reset SOL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reset SOL": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
-  "meta": { "description": "CD §8.7 WF5 — POST /config reset_daily, pas Redis direct" }
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "CD §8.7 WF5 — POST /config reset_daily sur les 3 bots"
+  }
 }

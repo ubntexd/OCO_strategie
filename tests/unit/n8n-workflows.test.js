@@ -41,14 +41,17 @@ describe('n8n/workflows — L15', () => {
     expect(hdr.some((h) => h.name === 'x-restart-token' && h.value.includes('$env.RESTART_SECRET'))).toBe(true);
   });
 
-  test('WF5 — POST /config reset_daily, pas Redis direct', () => {
+  test('WF5 — POST /config reset_daily sur 3 bots, pas Redis direct', () => {
     const wf = loadWf('wf5_reset_daily.json');
     const nodes = allNodes(wf);
     expect(nodes.some((n) => n.type === 'n8n-nodes-base.redis')).toBe(false);
-    const reset = nodes.find((n) => n.name === 'Reset BTC');
-    expect(reset.parameters.method).toBe('POST');
-    expect(reset.parameters.url).toMatch(/\/config/);
-    expect(reset.parameters.jsonBody).toMatch(/reset_daily/);
+    for (const name of ['Reset BTC', 'Reset ETH', 'Reset SOL']) {
+      const reset = nodes.find((n) => n.name === name);
+      expect(reset).toBeDefined();
+      expect(reset.parameters.method).toBe('POST');
+      expect(reset.parameters.url).toMatch(/\/config/);
+      expect(reset.parameters.jsonBody).toMatch(/reset_daily/);
+    }
   });
 
   test('secrets via $env, pas en dur', () => {

@@ -7,6 +7,8 @@
 
 ## 0. RÉSUMÉ EXÉCUTIF
 
+> Dernier audit cohérence : 10/07/2026 — `docs/rapports/RAPPORT_AUDIT_COHERENCE.md`
+
 | Item | Valeur |
 |------|--------|
 | Projet | BotTrader v1.0 — Trading automatisé Binance Spot |
@@ -15,10 +17,10 @@
 | Objectif | 80 USDT net/jour |
 | VPS | `176.97.70.254` — Ubuntu 24.04 LTS |
 | Chemin | `/home/dev/dev/OCO_strategie` |
-| Git branch | `main` — dernier commit `f2e5f6f` |
+| Git branch | `main` — dernier commit `d2de46e` |
 | Tests | **132/132 PASS** — 15 suites — ~5s |
 | Dashboard | `http://176.97.70.254:3010` — **ACTIF et validé** |
-| Statut global | 🟡 CODE COMPLET — EN ATTENTE DÉMARRAGE BOT |
+| Statut global | 🟡 CODE COMPLET — BOT BTC DRY_RUN ACTIF — ETH/SOL À DÉMARRER |
 
 ---
 
@@ -127,7 +129,7 @@ Temps d'exécution : ~5 secondes
 | `mcp_bridge` | 5011 | `ops` | ✅ ACTIF |
 | `dev_dashboard` | 3020 | (toujours) | ✅ ACTIF |
 | `claude_worker` | 4099 | `ops` | ✅ ACTIF |
-| `bot_btc` | 4001 | `btc` | ⏸ À démarrer |
+| `bot_btc` | 4001 | `btc` | ✅ ACTIF (DRY_RUN) |
 | `bot_eth` | 4002 | `full` | ⏸ Phase C |
 | `bot_sol` | 4003 | `full` | ⏸ Phase B |
 | `bot_mcp` | 5010 | `ops` | ⏸ À démarrer |
@@ -289,7 +291,7 @@ LOG_LEVEL=info
 ## 6. COMMITS — HISTORIQUE
 
 ```
-f2e5f6f  feat: dashboard UI pro v2 validé — 10 onglets Chart.js 132/132 PASS
+d2de46e  feat: dashboard UI pro v2 validé — 10 onglets Chart.js 132/132 PASS
 6b62b66  feat: dashboard UI pro v2 + volume bind-mount docker-compose
 421aff2  feat: dashboard conforme CDC v1.1 — 9 onglets complets
 70f7deb  docs: architecture 3 modules de développement

@@ -27,14 +27,14 @@ const logEvent = async (pgPool, symbol, type, payload = {}) => {
   );
 };
 
-const logTradeOpen = async (pgPool, symbol, price, qty, tp, sl, atr, kellyFraction) => {
+const logTradeOpen = async (pgPool, symbol, price, qty, tp, sl, atr, kellyFraction, correlationBtcEth = null) => {
   const result = await pgPool.query(
     `INSERT INTO trades (
        symbol, entry_price, qty, result, order_type, entry_mode,
-       regime, kelly_fraction, dry_run
-     ) VALUES ($1, $2, $3, 'OPEN', 'OPOCO', 'LIMIT_MAKER', NULL, $4, $5)
+       regime, kelly_fraction, correlation_btc_eth, dry_run
+     ) VALUES ($1, $2, $3, 'OPEN', 'OPOCO', 'LIMIT_MAKER', NULL, $4, $5, $6)
      RETURNING id`,
-    [symbol, price, qty, kellyFraction, process.env.DRY_RUN === 'true'],
+    [symbol, price, qty, kellyFraction, correlationBtcEth, process.env.DRY_RUN === 'true'],
   );
   logger.debug(`Trade ouvert id=${result.rows[0].id} ${symbol}`);
   return result.rows[0].id;
@@ -44,6 +44,22 @@ const logTradeFill = async (pgPool, tradeId, entry) => {
   await pgPool.query(
     `UPDATE trades SET entry_price = $1, qty = $2 WHERE id = $3`,
     [entry.fillPrice, entry.quantity, tradeId],
+  );
+};
+
+
+const upsertDailySummary = async (pgPool, symbol, pnlNet, result) => {
+  const win = result === 'TP' ? 1 : 0;
+  const loss = result === 'SL' ? 1 : 0;
+  await pgPool.query(
+    `INSERT INTO daily_summary (summary_date, symbol, trades_count, wins, losses, pnl_net)
+     VALUES (CURRENT_DATE, $1, 1, $2, $3, $4)
+     ON CONFLICT (summary_date, symbol) DO UPDATE SET
+       trades_count = daily_summary.trades_count + 1,
+       wins = daily_summary.wins + EXCLUDED.wins,
+       losses = daily_summary.losses + EXCLUDED.losses,
+       pnl_net = daily_summary.pnl_net + EXCLUDED.pnl_net`,
+    [symbol, win, loss, pnlNet],
   );
 };
 
@@ -62,6 +78,8 @@ const logTradeClose = async (pgPool, redis, symbol, tradeId, closeData) => {
       tradeId,
     ],
   );
+
+  await upsertDailySummary(pgPool, symbol, closeData.pnlNet, closeData.result);
 
   const total = await redis.incr('bot:global:total_trades');
   if (total === 1500) {
