@@ -4,7 +4,15 @@
 **Date :** 09 juillet 2026
 **Basé sur :** CDC v1.1.0
 **Environnement :** Cursor / Claude Code — Architecture multi-agents
-**Statut :** Prêt pour développement
+**Statut :** En attente — alignement infra validé (voir `RAPPORT_ALIGNEMENT_CDC_CD.md`)
+
+> **Rectifications infra v1.1.1 (10/07/2026) :**
+> - VPS : `176.97.70.254` (cohabitation UltiumGrid) — remplace `37.1.209.232`
+> - Chemin : `/home/dev/dev/OCO_strategie`
+> - Déploiement : **BTC seul → valider → SOL → valider → ETH**
+> - Postgres host : port **5435** (conflit 5433 UltiumGrid)
+> - N8n : `ultiumgrid_obs-n8n-1` (port 25678) — remplace `rohan_n8n`
+> - IP whitelist Binance : `176.97.70.254`
 
 > **Changelog v1.1 CD :**
 > - P0-1 : `waitForResult()` définie dans `monitor.js`
@@ -429,7 +437,7 @@ services:
       POSTGRES_DB: bot_trading
       POSTGRES_USER: bot
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports: ["5433:5432"]
+    ports: ["5435:5432"]  # 5433 occupé par UltiumGrid sur 176.97.70.254
     volumes: ["bot_pgdata:/var/lib/postgresql/data"]
     networks: [bot_network]
     restart: unless-stopped
@@ -1684,7 +1692,7 @@ server.connect(transport);
 ```
 □ Capital réduit : BTC 600 / ETH 500 / SOL 400 USDT
 □ BINANCE_TESTNET=false, DRY_RUN=false
-□ 3 clés API distinctes avec IP whitelist 37.1.209.232
+□ 3 clés API distinctes avec IP whitelist 176.97.70.254
 □ rclone configuré + premier backup cloud vérifié
 □ Dashboard accessible + auth basique active
 □ Premier trade réel journalisé avec fees réels
@@ -2104,13 +2112,18 @@ feature/xxx → développement module
 fix/xxx     → correction bug
 ```
 
-### 11.4 Déploiement VPS
+### 11.4 Déploiement VPS (176.97.70.254)
+
+> **Stratégie BTC first :** démarrer avec `docker-compose.btc.yml` (BTC seul).
+> Activer ETH/SOL uniquement après validation GO/NO-GO de la paire précédente.
+> Voir `docs/RAPPORT_ALIGNEMENT_CDC_CD.md`.
+
 ```bash
-cd /var/www/dev/apps/bot-trading/
+cd /home/dev/dev/OCO_strategie
 git pull origin main
-docker compose build
-docker compose up -d --force-recreate
-docker compose logs -f --tail=50
+docker compose -f docker-compose.yml -f docker-compose.btc.yml build
+docker compose -f docker-compose.yml -f docker-compose.btc.yml up -d
+docker compose logs -f bot_btc --tail=50
 ```
 
 ### 11.5 Rollback d'urgence
