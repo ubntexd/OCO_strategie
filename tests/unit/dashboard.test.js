@@ -31,7 +31,7 @@ const authHeader = () => {
   return { Authorization: `Basic ${Buffer.from('admin:testpass').toString('base64')}` };
 };
 
-describe('dashboard/server.js — 9 onglets', () => {
+describe('dashboard/server.js — 10 onglets', () => {
   const mockPg = { query: jest.fn() };
   const mockRedis = {
     get: jest.fn().mockResolvedValue('65000'),
@@ -44,10 +44,10 @@ describe('dashboard/server.js — 9 onglets', () => {
     mockPg.query.mockResolvedValue({ rows: [{ total: '42.5' }] });
   });
 
-  test('index.html expose 9 onglets', () => {
+  test('index.html expose 10 onglets', () => {
     const html = fs.readFileSync(path.join(__dirname, '../../dashboard/public/index.html'), 'utf8');
     const tabs = (html.match(/data-tab="/g) || []).length;
-    expect(tabs).toBe(9);
+    expect(tabs).toBe(10);
   });
 
   test('GET /health sans auth', async () => {

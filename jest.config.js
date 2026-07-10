@@ -5,4 +5,6 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.js', 'mcp/**/*.js', 'dashboard/**/*.js'],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov'],
+  testTimeout: 15000,
+  forceExit: true,
 };

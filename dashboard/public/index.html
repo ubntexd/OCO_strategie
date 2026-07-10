@@ -2,26 +2,53 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>ROHAN Trading Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ROHAN BotTrader — Dashboard</title>
   <link rel="stylesheet" href="/css/dashboard.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
-  <header>
-    <h1>BotTrader — Dashboard</h1>
-    <span id="live-ts">—</span>
-  </header>
-  <nav id="tabs">
-    <button data-tab="overview" class="active">Vue</button>
-    <button data-tab="trades">Trades</button>
-    <button data-tab="pnl">PnL</button>
-    <button data-tab="status">Statut</button>
-    <button data-tab="correlation">Corrélation</button>
-    <button data-tab="backtest">Backtest</button>
-    <button data-tab="events">Events</button>
-    <button data-tab="config">Config</button>
-    <button data-tab="health">Health</button>
-  </nav>
-  <main id="panel"></main>
+  <div id="app">
+    <aside id="sidebar">
+      <div id="logo">
+        <span class="logo-icon">⬡</span>
+        <span class="logo-text">ROHAN<br><small>BotTrader v1.0</small></span>
+      </div>
+      <nav id="nav">
+        <button data-tab="overview"     class="active"><span class="nav-icon">◈</span> Overview</button>
+        <button data-tab="trades">      <span class="nav-icon">⇌</span> Historique</button>
+        <button data-tab="pnl">         <span class="nav-icon">↗</span> PnL</button>
+        <button data-tab="status">      <span class="nav-icon">◉</span> Statut Bots</button>
+        <button data-tab="market">      <span class="nav-icon">◎</span> Marché</button>
+        <button data-tab="correlation"> <span class="nav-icon">⊡</span> Corrélation</button>
+        <button data-tab="backtest">    <span class="nav-icon">⏮</span> Backtest</button>
+        <button data-tab="events">      <span class="nav-icon">⚡</span> Events</button>
+        <button data-tab="config">      <span class="nav-icon">⚙</span> Config</button>
+        <button data-tab="health">      <span class="nav-icon">♥</span> Health / VPS</button>
+      </nav>
+      <div id="ws-indicator">
+        <span id="ws-dot" class="dot dot-off"></span>
+        <span id="ws-label">Déconnecté</span>
+      </div>
+    </aside>
+
+    <div id="main">
+      <header id="topbar">
+        <div id="topbar-left">
+          <span id="active-tab-label">Overview</span>
+        </div>
+        <div id="topbar-right">
+          <span class="ticker" id="tk-btc">BTC —</span>
+          <span class="ticker" id="tk-eth">ETH —</span>
+          <span class="ticker" id="tk-sol">SOL —</span>
+          <span id="pnl-day-badge" class="badge">PnL —</span>
+          <span id="live-ts" class="ts">—</span>
+        </div>
+      </header>
+      <div id="panel"></div>
+    </div>
+  </div>
+
   <script src="/js/dashboard.js"></script>
 </body>
 </html>
